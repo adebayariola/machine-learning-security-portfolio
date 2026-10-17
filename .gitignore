@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env*
+.DS_Store
+*.pcap
+*.pcapng
+*.pt
+*.pth
+*.pkl
+*.joblib
+**/data/*.csv
