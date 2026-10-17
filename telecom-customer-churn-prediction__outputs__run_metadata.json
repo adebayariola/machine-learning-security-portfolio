@@ -1,0 +1,9 @@
+{
+  "dataset": "IBM Telco Customer Churn",
+  "rows": 7043,
+  "features_before_target": 19,
+  "train_rows": 5634,
+  "test_rows": 1409,
+  "churn_rate": 0.2654,
+  "random_state": 42
+}
