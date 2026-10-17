@@ -1,0 +1,47 @@
+name: Organize portfolio folders
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - Portfolio_Structured.zip
+permissions:
+  contents: write
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore project folders and remove flat browsing copies
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile, subprocess
+          root = Path.cwd()
+          archive = root / 'Portfolio_Structured.zip'
+          if not archive.exists():
+              raise SystemExit('Upload Portfolio_Structured.zip before running this workflow.')
+          with zipfile.ZipFile(archive) as z:
+              for name in z.namelist():
+                  target = (root / name).resolve()
+                  if not target.is_relative_to(root):
+                      raise ValueError('Archive path escapes repository')
+              members = set(z.namelist())
+              if 'README.md' not in members or not any(n.startswith('projects/security/') for n in members):
+                  raise ValueError('Unexpected archive contents')
+              tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+              for name in tracked:
+                  if not name or '/' in name or name == 'Portfolio_Structured.zip':
+                      continue
+                  p = root / name
+                  if p.is_file() and (name.endswith('.md') or '__' in name or name in ['GitHub_Project_Portfolio.zip','github-project-portfolio']):
+                      p.unlink()
+              z.extractall(root)
+          archive.unlink()
+          PY
+      - name: Commit organised portfolio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Organize projects into categories with clear documentation and results"
+          git push
